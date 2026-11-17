@@ -58,3 +58,15 @@ grant select, insert, update, delete on table public.votes to authenticated;
 
 -- Если у старого bigint id есть sequence, новые INSERT без id продолжат работать
 -- благодаря существующему DEFAULT; для старой PK id это не меняется.
+
+-- Даём authenticated право использовать sequence старого bigint id (если она есть).
+do $$
+declare
+  votes_id_sequence text;
+begin
+  votes_id_sequence := pg_get_serial_sequence('public.votes', 'id');
+  if votes_id_sequence is not null then
+    execute format('grant usage, select on sequence %s to authenticated', votes_id_sequence::regclass);
+  end if;
+end
+$$;
