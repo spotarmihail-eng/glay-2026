@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <script defer src="app.js"></script>
 </head>
@@ -22,7 +23,7 @@
     <nav class="nav" id="nav">
       <a href="#about">О премии</a><a href="#people">Участники</a><a href="#awards">Номинации</a>
     </nav>
-    <a class="nav-cta" href="#awards">К голосованию <span>↗</span></a>
+    <div class="auth-area"><span id="authStatus">Подключаем Supabase…</span><button class="nav-cta" id="authButton" type="button">Войти через Discord</button></div>
     <button class="menu-toggle" id="menuToggle" aria-label="Открыть меню">☰</button>
   </header>
 
@@ -55,7 +56,7 @@
     <section class="awards-section section" id="awards">
       <div class="section-head"><div><div class="section-kicker">03 / ВЫБИРАЙ ЛУЧШИХ</div><h2>НОМИНАЦИИ<span class="lime">.</span></h2></div><p class="section-aside">17 категорий.<br>Один незабываемый год.</p></div>
       <div class="awards-grid" id="awardsGrid"></div>
-      <div class="vote-note"><span class="note-icon">✳</span><div><strong>ГОЛОСОВАНИЕ СКОРО ОТКРОЕТСЯ</strong><p>Вход будет через Discord. Один аккаунт — один голос в каждой номинации. Голос можно будет отменить или изменить.</p></div><span class="note-arrow">↗</span></div>
+      <div class="vote-note"><span class="note-icon">✳</span><div><strong>ГОЛОСОВАНИЕ ОТКРЫТО</strong><p>Войди через Discord и выбери участника в каждой номинации. Один аккаунт — один голос в категории; голос можно изменить или отменить.</p></div><span class="note-arrow">↗</span></div>
     </section>
 
     <section class="closing"><div class="closing-kicker">GLAY COMMUNITY AWARDS · 2026</div><h2>ТВОЯ ИСТОРИЯ.<br><span>ТВОЙ ВЫБОР.</span></h2><a class="button button-primary" href="#awards">К номинациям <span>↗</span></a><div class="closing-star">✳</div></section>
