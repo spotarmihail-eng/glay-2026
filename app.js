@@ -33,7 +33,7 @@ function renderAwards() {
   awardsGrid.querySelectorAll("[data-remove]").forEach(btn => btn.addEventListener("click", () => removeVote(Number(btn.dataset.remove))));
 }
 async function refreshVotes() {
-  if (!supabase) return;
+  if (!supabaseClient) return;
   const { data, error } = await supabaseClient.from("votes").select("nomination,participant");
   if (error) { console.error(error); toast("Не удалось загрузить результаты голосования."); return; }
   totals = new Map(nominations.map(n => [n, 0]));
@@ -76,7 +76,7 @@ async function initAuth() {
     toast("Не заполнены настройки Supabase.");
     return;
   }
-  supabase = window.supabaseClient.createClient(cfg.supabaseUrl, cfg.supabaseKey);
+  supabaseClient = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseKey);
   const { data } = await supabaseClient.auth.getSession();
   session = data.session;
   renderAuth();
