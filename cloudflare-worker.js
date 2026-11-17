@@ -56,7 +56,7 @@ function headers(origin) {
     "Access-Control-Allow-Origin": origin,
     "Access-Control-Allow-Credentials": "true",
     "Access-Control-Allow-Methods": "GET,POST,DELETE,OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "Vary": "Origin"
   };
 }
@@ -80,7 +80,8 @@ function redirect(url, cookieValue) {
 }
 
 async function currentUser(request, env) {
-  const token = cookie(request, "glay_session");
+  const authorization = request.headers.get("Authorization") || "";
+  const token = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
   return token ? verify(token, env.SESSION_SECRET) : null;
 }
 
@@ -141,8 +142,8 @@ export default {
         exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7
       }, env.SESSION_SECRET);
 
-      return redirect(SITE_URL,
-        "glay_session=" + session + "; Path=/; HttpOnly; Secure; SameSite=None; Max-Age=604800");
+      return redirect(SITE_URL + "#session=" + encodeURIComponent(session),
+        "glay_oauth_state=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0");
     }
 
     if (url.pathname.startsWith("/api/")) {
