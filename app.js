@@ -27,22 +27,32 @@ function renderAwards() {
     const selected = myVotes.get(name) || "";
     const total = totals.get(name) || 0;
     const options = participants.map(p => '<option value="' + p[0] + '"' + (selected === p[0] ? " selected" : "") + '>' + p[0] + '</option>').join("");
-    return '<article class="award-card vote-card"><div class="award-number">CATEGORY / ' + String(i+1).padStart(2,"0") + '</div><div class="award-name">' + name + '</div><span class="award-arrow">✳</span><div class="vote-controls"><label class="vote-label" for="vote-' + i + '">ТВОЙ ВЫБОР</label><select id="vote-' + i + '" class="vote-select"><option value="">Выбери участника</option>' + options + '</select><button class="vote-submit" data-vote="' + i + '">' + (selected ? "Изменить голос" : "Проголосовать") + '</button>' + (selected ? '<button class="vote-remove" data-remove="' + i + '">Отменить голос</button>' : '') + '<div class="vote-total">Голосов учтено: ' + total + '</div></div></article>';
+    return '<article class="award-card vote-card"><div class="award-number">CATEGORY / ' + String(i+1).padStart(2,"0") + '</div><div class="award-name">' + name + '</div><span class="award-arrow">✳</span><div class="vote-controls"><label class="vote-label" for="vote-' + i + '">ТВОЙ ВЫБОР</label><select id="vote-' + i + '" class="vote-select"><option value="">Выбери участника</option>' + options + '</select><button class="vote-submit" data-vote="' + i + '">' + (selected ? "Изменить голос" : "Проголосовать") + '</button>' + (selected ? '<button class="vote-remove" data-remove="' + i + '">Отменить голос</button>' : '') + '</div></article>';
   }).join("");
   awardsGrid.querySelectorAll("[data-vote]").forEach(btn => btn.addEventListener("click", () => castVote(Number(btn.dataset.vote))));
   awardsGrid.querySelectorAll("[data-remove]").forEach(btn => btn.addEventListener("click", () => removeVote(Number(btn.dataset.remove))));
 }
 async function refreshVotes() {
   if (!supabaseClient) return;
-  const { data, error } = await supabaseClient.from("votes").select("nomination,participant");
-  if (error) { console.error(error); toast("Не удалось загрузить результаты голосования."); return; }
+  // Не читаем таблицу голосов у анонимных посетителей.
+  // После входа загружаем только голоса текущего пользователя (RLS).
   totals = new Map(nominations.map(n => [n, 0]));
-  data.forEach(v => totals.set(v.nomination, (totals.get(v.nomination) || 0) + 1));
-  if (session) {
-    const { data: mine, error: mineError } = await supabaseClient.from("votes").select("nomination,participant").eq("user_id", session.user.id);
-    if (mineError) console.error(mineError);
+  if (!session) {
+    myVotes = new Map();
+    renderAwards();
+    return;
+  }
+  const { data: mine, error } = await supabaseClient
+    .from("votes")
+    .select("nomination,participant")
+    .eq("user_id", session.user.id);
+  if (error) {
+    console.error(error);
+    toast("Не удалось загрузить твои голоса. Проверь структуру таблицы votes в Supabase.");
+    myVotes = new Map();
+  } else {
     myVotes = new Map((mine || []).map(v => [v.nomination, v.participant]));
-  } else myVotes = new Map();
+  }
   renderAwards();
 }
 async function castVote(index) {
