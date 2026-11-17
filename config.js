@@ -1,7 +1,6 @@
-// Публичные настройки сайта. Секретные ключи сюда добавлять нельзя.
+// Публичные настройки сайта. Publishable key можно хранить в клиентском коде.
+// Никогда не добавляй сюда Secret key или Discord Client Secret.
 window.GLAY_CONFIG = {
-  // Client ID Discord-приложения добавим после настройки OAuth2.
-  discordClientId: "",
-  // Авторизация и защищённое голосование подключаются после настройки серверной части.
-  votingEnabled: false
+  supabaseUrl: "https://onnlysybwtayoecqqrrz.supabase.co",
+  supabaseKey: "sb_publishable_VhkDLLA02aEyTmySc4VfxQ_7JscTZCJ"
 };
