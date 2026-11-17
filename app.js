@@ -4,7 +4,7 @@ const participants = [
 const nominations = ["Прикол года","Тупость года","Клип года","Спидранер года","Маинкрафтер года","Кээсер года","Дотер года","Харизма года","Мододел Года","Контент года","Монстор года","Хойщик года","Витубер года","Активист года","Фоновик года","Строитель года","Архитектор автоматизации"];
 const $ = (id) => document.getElementById(id);
 const grid = $("peopleGrid"), count = $("peopleCount"), awardsGrid = $("awardsGrid");
-let supabase = null, session = null, myVotes = new Map(), totals = new Map();
+let supabaseClient = null, session = null, myVotes = new Map(), totals = new Map();
 
 function toast(message) {
   const el = $("toast");
@@ -34,12 +34,12 @@ function renderAwards() {
 }
 async function refreshVotes() {
   if (!supabase) return;
-  const { data, error } = await supabase.from("votes").select("nomination,participant");
+  const { data, error } = await supabaseClient.from("votes").select("nomination,participant");
   if (error) { console.error(error); toast("Не удалось загрузить результаты голосования."); return; }
   totals = new Map(nominations.map(n => [n, 0]));
   data.forEach(v => totals.set(v.nomination, (totals.get(v.nomination) || 0) + 1));
   if (session) {
-    const { data: mine, error: mineError } = await supabase.from("votes").select("nomination,participant").eq("user_id", session.user.id);
+    const { data: mine, error: mineError } = await supabaseClient.from("votes").select("nomination,participant").eq("user_id", session.user.id);
     if (mineError) console.error(mineError);
     myVotes = new Map((mine || []).map(v => [v.nomination, v.participant]));
   } else myVotes = new Map();
@@ -49,7 +49,7 @@ async function castVote(index) {
   if (!session) { toast("Сначала войди через Discord."); return; }
   const nomination = nominations[index], participant = $("vote-" + index).value;
   if (!participant) { toast("Сначала выбери участника."); return; }
-  const { error } = await supabase.from("votes").upsert(
+  const { error } = await supabaseClient.from("votes").upsert(
     { user_id: session.user.id, nomination, participant, updated_at: new Date().toISOString() },
     { onConflict: "user_id,nomination" }
   );
@@ -59,7 +59,7 @@ async function castVote(index) {
 }
 async function removeVote(index) {
   if (!session) { toast("Сначала войди через Discord."); return; }
-  const { error } = await supabase.from("votes").delete().eq("user_id", session.user.id).eq("nomination", nominations[index]);
+  const { error } = await supabaseClient.from("votes").delete().eq("user_id", session.user.id).eq("nomination", nominations[index]);
   if (error) { console.error(error); toast("Не удалось отменить голос: " + error.message); return; }
   toast("Голос отменён.");
   await refreshVotes();
@@ -76,22 +76,22 @@ async function initAuth() {
     toast("Не заполнены настройки Supabase.");
     return;
   }
-  supabase = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseKey);
-  const { data } = await supabase.auth.getSession();
+  supabase = window.supabaseClient.createClient(cfg.supabaseUrl, cfg.supabaseKey);
+  const { data } = await supabaseClient.auth.getSession();
   session = data.session;
   renderAuth();
   await refreshVotes();
-  supabase.auth.onAuthStateChange(async (_event, newSession) => {
+  supabaseClient.auth.onAuthStateChange(async (_event, newSession) => {
     session = newSession;
     renderAuth();
     await refreshVotes();
   });
   $("authButton").addEventListener("click", async () => {
     if (session) {
-      const { error } = await supabase.auth.signOut();
+      const { error } = await supabaseClient.auth.signOut();
       if (error) toast("Не удалось выйти.");
     } else {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabaseClient.auth.signInWithOAuth({
         provider: "discord",
         options: { redirectTo: window.location.origin + window.location.pathname }
       });
