@@ -1,0 +1,8 @@
+name = "glay-2026"
+main = "cloudflare-worker.js"
+compatibility_date = "2026-11-17"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "глэй-2026-голоса"
+database_id = "f8db27d9-cc4c-45ae-b2af-410775665b0e"
